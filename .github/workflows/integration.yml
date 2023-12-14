@@ -54,3 +54,32 @@ jobs:
         context: .
         push: true
         tags: ghcr.io/alvarozz01/tos:latest
+
+  deploy:
+    needs: verify-and-package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - uses: actions/checkout@v3
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCLOUD_SA }}'
+      - id: 'get-credentials'
+        uses: 'google-github-actions/get-gke-credentials@v1'
+        with:
+          cluster_name: 'apsv-23'
+          location: 'us-central1'
+      - id: 'deployment-mypod'
+        run: >-
+          kubectl create secret docker-registry github-registry
+          --docker-server="ghcr.io"
+          --docker-username="${{ github.actor }}"
+          --docker-password="${{ secrets.PAT }}"
+          --docker-email=""
+          -o yaml --dry-run=client | kubectl apply -f -
+      - run: 'kubectl apply -f deployment.yaml'
+      - run: 'kubectl get deployments'
+      - run: 'kubectl get pods'
