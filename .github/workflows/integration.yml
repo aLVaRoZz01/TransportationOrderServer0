@@ -53,4 +53,4 @@ jobs:
       with:
         context: .
         push: true
-        tags: ghcr.io/aLVaRoZz01/tos:latest
+        tags: ghcr.io/alvarozz01/tos:latest
